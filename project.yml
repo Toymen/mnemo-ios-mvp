@@ -1,0 +1,90 @@
+name: Mnemo
+options:
+  bundleIdPrefix: com.mnemo
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: 5.9
+    ENABLE_PREVIEWS: YES
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_IDENTITY: ""
+    CODE_SIGNING_REQUIRED: NO
+    CODE_SIGNING_ALLOWED: NO
+
+targets:
+  Mnemo:
+    type: application
+    platform: iOS
+    sources:
+      - path: Mnemo
+        excludes:
+          - "**/*.md"
+    info:
+      path: Mnemo/Info.plist
+      properties:
+        CFBundleDisplayName: Mnemo
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        UILaunchScreen:
+          UIColorName: ""
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSMicrophoneUsageDescription: "Mnemo uses the microphone to capture voice notes for memory extraction."
+        NSSpeechRecognitionUsageDescription: "Mnemo uses speech recognition to transcribe voice notes."
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mnemo.app
+        INFOPLIST_FILE: Mnemo/Info.plist
+        ENABLE_HARDENED_RUNTIME: NO
+
+  MnemoTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - MnemoTests
+    dependencies:
+      - target: Mnemo
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mnemo.tests
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Mnemo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Mnemo
+
+  MnemoUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - MnemoUITests
+    dependencies:
+      - target: Mnemo
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mnemo.uitests
+        TEST_TARGET_NAME: Mnemo
+
+schemes:
+  Mnemo:
+    build:
+      targets:
+        Mnemo: all
+        MnemoTests: [test]
+        MnemoUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - name: MnemoTests
+          parallelizable: true
+          randomExecutionOrder: true
+        - name: MnemoUITests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

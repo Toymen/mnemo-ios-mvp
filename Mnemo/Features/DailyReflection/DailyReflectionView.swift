@@ -96,6 +96,7 @@ private struct ReflectionFormView: View {
                 .disabled(isSubmitting)
             }
         }
+        .scrollDismissesKeyboard(.interactively)
     }
 }
 

@@ -134,6 +134,7 @@ struct ProjectDetailView: View {
                 }
             }
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle(project.name)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
@@ -186,6 +187,7 @@ struct CreateProjectView: View {
                     ProjectStatusPicker(status: $status)
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("New Project")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

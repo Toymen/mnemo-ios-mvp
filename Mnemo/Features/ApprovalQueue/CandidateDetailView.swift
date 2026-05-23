@@ -79,6 +79,7 @@ struct CandidateDetailView: View {
                 }
             }
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Review Candidate")
         .onAppear { editedText = candidate.proposedText }
     }

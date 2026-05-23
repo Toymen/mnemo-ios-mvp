@@ -82,6 +82,7 @@ private struct CaptureContentView: View {
                 }
             }
         }
+        .scrollDismissesKeyboard(.interactively)
         .sheet(isPresented: $viewModel.showCandidates) {
             CandidatesPreviewSheet(candidates: viewModel.generatedCandidates)
         }

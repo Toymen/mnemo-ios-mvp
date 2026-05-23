@@ -91,9 +91,18 @@ struct SettingsView: View {
                     }
                 }
 
-                Section("About") {
-                    LabeledContent("Version") { Text("0.1.0 MVP") }
-                    LabeledContent("Build") { Text("agent/mnemo-mvp-autopilot") }
+                Section {
+                    VStack(spacing: 8) {
+                        MnemoLogo(size: .medium)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                        Text("Version 0.1.0 MVP")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text("Your personal memory layer")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
                 }
             }
             .navigationTitle("Settings")

@@ -49,9 +49,7 @@ private struct DailyReflectionContentView: View {
                 }
             } else {
                 VStack(spacing: 20) {
-                    Image(systemName: "sun.max.fill")
-                        .font(.system(size: 60))
-                        .foregroundStyle(.orange)
+                    MnemoLogo(size: .medium)
                     Text("Ready to reflect?")
                         .font(.title2)
                     Button("Start Today's Reflection") {

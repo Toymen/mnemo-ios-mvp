@@ -10,11 +10,15 @@ struct ProjectListView: View {
         NavigationStack {
             Group {
                 if projects.isEmpty {
-                    ContentUnavailableView(
-                        "No Projects",
-                        systemImage: "folder",
-                        description: Text("Create a project to track your work.")
-                    )
+                    VStack(spacing: 16) {
+                        MnemoLogo(size: .medium)
+                        Text("No Projects")
+                            .font(.title3.weight(.semibold))
+                        Text("Create a project to track your work.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
                         ForEach(projects) { project in

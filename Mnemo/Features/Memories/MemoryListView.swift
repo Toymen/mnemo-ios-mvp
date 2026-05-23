@@ -21,11 +21,15 @@ struct MemoryListView: View {
                 if isLoading {
                     ProgressView("Loading memories...")
                 } else if memories.isEmpty {
-                    ContentUnavailableView(
-                        "No Memories Yet",
-                        systemImage: "brain",
-                        description: Text("Approve a memory candidate to see it here.")
-                    )
+                    VStack(spacing: 16) {
+                        MnemoLogo(size: .medium)
+                        Text("No Memories Yet")
+                            .font(.title3.weight(.semibold))
+                        Text("Approve a memory candidate to see it here.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List(filtered) { memory in
                         NavigationLink {

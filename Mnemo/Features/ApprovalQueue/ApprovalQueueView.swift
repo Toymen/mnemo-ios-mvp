@@ -39,11 +39,15 @@ private struct ApprovalQueueContentView: View {
             if viewModel.isLoading {
                 ProgressView("Loading candidates...")
             } else if viewModel.pendingCandidates.isEmpty {
-                ContentUnavailableView(
-                    "No Pending Candidates",
-                    systemImage: "checkmark.circle",
-                    description: Text("Capture something to generate memory candidates.")
-                )
+                VStack(spacing: 16) {
+                    MnemoLogo(size: .medium)
+                    Text("No Pending Candidates")
+                        .font(.title3.weight(.semibold))
+                    Text("Capture something to generate memory candidates.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
                     if let error = viewModel.error {

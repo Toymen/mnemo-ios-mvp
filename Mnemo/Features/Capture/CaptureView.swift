@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CaptureView: View {
     @EnvironmentObject private var container: AppContainer
+    @AppStorage("speechLanguage") private var speechLanguage: String = "en-US"
     @State private var viewModel: CaptureViewModel?
 
     var body: some View {
@@ -25,34 +26,63 @@ struct CaptureView: View {
                 await viewModel?.loadRecent()
             }
         }
+        .onChange(of: speechLanguage) {
+            viewModel?.speechRecognizer.locale = Locale(identifier: speechLanguage)
+        }
     }
 }
 
 private struct CaptureContentView: View {
     @Bindable var viewModel: CaptureViewModel
 
+    private var speechError: String? {
+        if case .error(let msg) = viewModel.speechRecognizer.state {
+            return msg
+        }
+        return nil
+    }
+
     var body: some View {
         List {
             Section("New Capture") {
-                TextEditor(text: $viewModel.rawText)
-                    .frame(minHeight: 100)
-
-                Button(action: {
-                    Task { await viewModel.submitCapture() }
-                }) {
-                    HStack {
-                        if viewModel.isProcessing {
-                            ProgressView().scaleEffect(0.8)
-                        }
-                        Text(viewModel.isProcessing ? "Processing..." : "Save & Extract")
-                    }
-                    .frame(maxWidth: .infinity)
+                if viewModel.speechRecognizer.isRecording {
+                    VoiceRecordingView(
+                        transcript: viewModel.speechRecognizer.transcript,
+                        savedSegmentCount: viewModel.savedSegmentCount
+                    )
+                } else {
+                    TextEditor(text: $viewModel.rawText)
+                        .frame(minHeight: 100)
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(viewModel.rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isProcessing)
+
+                HStack(spacing: 12) {
+                    Button(action: { viewModel.toggleRecording() }) {
+                        Label(
+                            viewModel.speechRecognizer.isRecording ? "Stop" : "Voice",
+                            systemImage: viewModel.speechRecognizer.isRecording ? "stop.circle.fill" : "mic.fill"
+                        )
+                        .foregroundStyle(viewModel.speechRecognizer.isRecording ? .red : .blue)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(viewModel.isProcessing)
+
+                    Button(action: {
+                        Task { await viewModel.submitCapture() }
+                    }) {
+                        HStack {
+                            if viewModel.isProcessing {
+                                ProgressView().scaleEffect(0.8)
+                            }
+                            Text(viewModel.isProcessing ? "Processing..." : "Save & Extract")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!viewModel.canSubmit)
+                }
             }
 
-            if let error = viewModel.error {
+            if let error = viewModel.error ?? speechError {
                 Section {
                     Label(error, systemImage: "exclamationmark.triangle")
                         .foregroundStyle(.red)
@@ -62,19 +92,22 @@ private struct CaptureContentView: View {
             if !viewModel.recentCaptures.isEmpty {
                 Section("Recent Captures") {
                     ForEach(viewModel.recentCaptures) { capture in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(capture.rawText)
-                                .lineLimit(2)
-                                .font(.body)
-                            HStack {
-                                Text(capture.inputType.rawValue.capitalized)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                StatusBadge(status: capture.processingStatus.rawValue)
-                                Text(capture.createdAt, style: .relative)
-                                    .font(.caption2)
-                                    .foregroundStyle(.tertiary)
+                        HStack(spacing: 12) {
+                            Image(systemName: capture.inputType == .voice ? "mic.fill" : "text.bubble.fill")
+                                .foregroundStyle(capture.inputType == .voice ? .blue : .secondary)
+                                .frame(width: 24)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(capture.rawText)
+                                    .lineLimit(2)
+                                    .font(.body)
+                                HStack {
+                                    CaptureStatusLabel(capture: capture)
+                                    Spacer()
+                                    Text(capture.createdAt, style: .relative)
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                }
                             }
                         }
                         .padding(.vertical, 2)
@@ -89,22 +122,27 @@ private struct CaptureContentView: View {
     }
 }
 
-private struct StatusBadge: View {
-    let status: String
+private struct CaptureStatusLabel: View {
+    let capture: Capture
+
     var body: some View {
-        Text(status)
-            .font(.caption2)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(color.opacity(0.15))
-            .foregroundStyle(color)
-            .clipShape(Capsule())
-    }
-    private var color: Color {
-        switch status {
-        case "processed": return .green
-        case "failed": return .red
-        default: return .orange
+        switch capture.processingStatus {
+        case .processed:
+            let count = capture.createdCandidateIds.count
+            Label(
+                count == 1 ? "1 candidate" : "\(count) candidates",
+                systemImage: "sparkles"
+            )
+            .font(.caption)
+            .foregroundStyle(.green)
+        case .failed:
+            Label("Failed", systemImage: "exclamationmark.triangle.fill")
+                .font(.caption)
+                .foregroundStyle(.red)
+        case .pending:
+            Label("Processing…", systemImage: "clock")
+                .font(.caption)
+                .foregroundStyle(.orange)
         }
     }
 }
@@ -139,6 +177,46 @@ private struct CandidatesPreviewSheet: View {
                 }
             }
         }
+    }
+}
+
+private struct VoiceRecordingView: View {
+    let transcript: String
+    let savedSegmentCount: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(.red)
+                    .frame(width: 8, height: 8)
+                Text("Recording...")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if savedSegmentCount > 0 {
+                    Spacer()
+                    Label(
+                        savedSegmentCount == 1 ? "1 segment saved" : "\(savedSegmentCount) segments saved",
+                        systemImage: "checkmark.circle.fill"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.green)
+                }
+            }
+
+            if transcript.isEmpty {
+                Text("Listening...")
+                    .foregroundStyle(.tertiary)
+                    .frame(minHeight: 80, alignment: .topLeading)
+            } else {
+                ScrollView {
+                    Text(transcript)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
+                .frame(minHeight: 80)
+            }
+        }
+        .padding(.vertical, 4)
     }
 }
 

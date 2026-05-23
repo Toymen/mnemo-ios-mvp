@@ -11,6 +11,7 @@
 		09BA3E35E6FAF6CB1B749458 /* RuleBasedMemoryExtractionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBECDB4C904FE373C994FF6E /* RuleBasedMemoryExtractionEngine.swift */; };
 		138B985975D64449E75DD6E9 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D997C0C5726B658E7D4AA99 /* AppContainer.swift */; };
 		1CED623950E8CD353E403993 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = 983D43E05EF48B7A92623706 /* Project.swift */; };
+		3CF3E81B2FC1BFB0000E51B7 /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CF3E81A2FC1BFB0000E51B7 /* SpeechRecognizer.swift */; };
 		49B8580F897ABEFB9082D90A /* JSONStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2608B0A0FDAD7B87F63D4989 /* JSONStore.swift */; };
 		4A84651FEC95375031B8996F /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D88415A94506959022B410 /* Capture.swift */; };
 		5157477A977D54885764809A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F85B747660388016C0ECE137 /* SettingsView.swift */; };
@@ -86,6 +87,7 @@
 		3071058219000C6D42639F1F /* OllamaExtractionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaExtractionEngine.swift; sourceTree = "<group>"; };
 		329CFB02F3821A24032F544F /* DailyReflection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReflection.swift; sourceTree = "<group>"; };
 		374152753B237D2E5B5B4669 /* ProjectRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectRepository.swift; sourceTree = "<group>"; };
+		3CF3E81A2FC1BFB0000E51B7 /* SpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognizer.swift; sourceTree = "<group>"; };
 		40E807F320D3091DF9B32056 /* CaptureRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureRepository.swift; sourceTree = "<group>"; };
 		4528DB4700FE830C939F8ACE /* DailyReflectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReflectionView.swift; sourceTree = "<group>"; };
 		4FF9217AF7B927E76D67372D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 				65C24FB2B0ED419568821E93 /* MockLLMExtractionEngine.swift */,
 				3071058219000C6D42639F1F /* OllamaExtractionEngine.swift */,
 				EBECDB4C904FE373C994FF6E /* RuleBasedMemoryExtractionEngine.swift */,
+				3CF3E81A2FC1BFB0000E51B7 /* SpeechRecognizer.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -486,6 +489,7 @@
 				776C605D2B36DEA6509F52AE /* OllamaExtractionEngine.swift in Sources */,
 				1CED623950E8CD353E403993 /* Project.swift in Sources */,
 				BB89203550C07C7B6CDF7B43 /* ProjectListView.swift in Sources */,
+				3CF3E81B2FC1BFB0000E51B7 /* SpeechRecognizer.swift in Sources */,
 				89C127103B311693FD32346D /* ProjectRepository.swift in Sources */,
 				09BA3E35E6FAF6CB1B749458 /* RuleBasedMemoryExtractionEngine.swift in Sources */,
 				5157477A977D54885764809A /* SettingsView.swift in Sources */,

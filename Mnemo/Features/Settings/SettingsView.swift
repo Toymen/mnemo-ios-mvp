@@ -2,14 +2,45 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject private var container: AppContainer
+    @AppStorage("speechLanguage") private var speechLanguage: String = "en-US"
     @State private var showResetConfirm = false
     @State private var exportStatus: String?
     @State private var isExporting = false
     @State private var memoryCount = 0
 
+    static let supportedLanguages: [(id: String, name: String)] = [
+        ("en-US", "English"),
+        ("de-DE", "Deutsch"),
+        ("es-ES", "Español"),
+        ("fr-FR", "Français"),
+        ("it-IT", "Italiano"),
+        ("pt-BR", "Português"),
+        ("ja-JP", "日本語"),
+        ("ko-KR", "한국어"),
+        ("zh-CN", "中文"),
+        ("ar-SA", "العربية"),
+        ("hi-IN", "हिन्दी"),
+        ("tr-TR", "Türkçe"),
+        ("nl-NL", "Nederlands"),
+        ("pl-PL", "Polski"),
+        ("ru-RU", "Русский"),
+        ("uk-UA", "Українська"),
+    ]
+
     var body: some View {
         NavigationStack {
             Form {
+                Section("Speech Recognition") {
+                    Picker("Language", selection: $speechLanguage) {
+                        ForEach(Self.supportedLanguages, id: \.id) { lang in
+                            Text(lang.name).tag(lang.id)
+                        }
+                    }
+                    Text("Speech recognizer supports one language at a time. English is used by default.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Privacy") {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("Local-First", systemImage: "lock.shield.fill")

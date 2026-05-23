@@ -81,7 +81,7 @@
 		16F338157F09D1A60007EEB4 /* ApprovalQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApprovalQueueView.swift; sourceTree = "<group>"; };
 		18ADEA7F6137857FECC507FB /* ProjectListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectListView.swift; sourceTree = "<group>"; };
 		1A2548B194D069E63661E18E /* ApprovalService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApprovalService.swift; sourceTree = "<group>"; };
-		1AE0EFC39175D243EBC59E06 /* Mnemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mnemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AE0EFC39175D243EBC59E06 /* Mnemo.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Mnemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DA50F19241B00DE5A9597BA /* CaptureViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureViewModel.swift; sourceTree = "<group>"; };
 		1F6949835B987AE451663033 /* ApprovalQueueViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApprovalQueueViewModel.swift; sourceTree = "<group>"; };
 		2608B0A0FDAD7B87F63D4989 /* JSONStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONStore.swift; sourceTree = "<group>"; };
@@ -407,6 +407,7 @@
 						ProvisioningStyle = Automatic;
 					};
 					40CCDD43B5F73EE980DF30FB = {
+						DevelopmentTeam = TX6GM4KP5K;
 						ProvisioningStyle = Automatic;
 					};
 					57A93E7D66D2714B9944D214 = {
@@ -584,14 +585,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = TX6GM4KP5K;
 				ENABLE_HARDENED_RUNTIME = NO;
 				INFOPLIST_FILE = Mnemo/Info.plist;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.mnemo.app;
+				PRODUCT_BUNDLE_IDENTIFIER = "nest-inc.Mnemo";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -685,14 +687,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = TX6GM4KP5K;
 				ENABLE_HARDENED_RUNTIME = NO;
 				INFOPLIST_FILE = Mnemo/Info.plist;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.mnemo.app;
+				PRODUCT_BUNDLE_IDENTIFIER = "nest-inc.Mnemo";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

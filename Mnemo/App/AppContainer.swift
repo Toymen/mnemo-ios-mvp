@@ -10,11 +10,21 @@ final class AppContainer: ObservableObject {
     let markdownExporter: MarkdownExporter
     let vaultWriter: FileVaultWriter
 
+    @Published private(set) var isReady = false
+
+    private let _captureRepo: FileBackedCaptureRepository
+    private let _memoryRepo: FileBackedMemoryRepository
+    private let _projectRepo: FileBackedProjectRepository
+
     init() {
         let captureRepo = FileBackedCaptureRepository()
         let memoryRepo = FileBackedMemoryRepository()
         let projectRepo = FileBackedProjectRepository()
         let vaultPath = Self.defaultVaultPath()
+
+        self._captureRepo = captureRepo
+        self._memoryRepo = memoryRepo
+        self._projectRepo = projectRepo
 
         self.captureRepository = captureRepo
         self.memoryRepository = memoryRepo
@@ -26,6 +36,19 @@ final class AppContainer: ObservableObject {
         )
         self.markdownExporter = MarkdownExporter()
         self.vaultWriter = FileVaultWriter(vaultPath: vaultPath)
+    }
+
+    func preload() async {
+        let start = ContinuousClock.now
+        try? await _captureRepo.preload()
+        try? await _memoryRepo.preload()
+        try? await _projectRepo.preload()
+        let elapsed = ContinuousClock.now - start
+        let minimum = Duration.milliseconds(600)
+        if elapsed < minimum {
+            try? await Task.sleep(for: minimum - elapsed)
+        }
+        isReady = true
     }
 
     private static func defaultVaultPath() -> URL {

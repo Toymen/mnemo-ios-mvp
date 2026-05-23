@@ -42,6 +42,10 @@ actor JSONStore<T: Codable & Identifiable & Sendable> where T.ID == UUID {
         try persist()
     }
 
+    func preload() throws {
+        try ensureLoaded()
+    }
+
     @discardableResult
     private func ensureLoaded() throws -> Bool {
         guard !loaded else { return true }

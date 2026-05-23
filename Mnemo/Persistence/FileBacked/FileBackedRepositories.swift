@@ -24,6 +24,10 @@ final class FileBackedCaptureRepository: CaptureRepository {
     func delete(id: UUID) async throws {
         try await store.delete(id: id)
     }
+
+    func preload() async throws {
+        try await store.preload()
+    }
 }
 
 // MARK: - Memory Repository
@@ -68,6 +72,11 @@ final class FileBackedMemoryRepository: MemoryRepository {
     func updateApprovedMemory(_ memory: ApprovedMemory) async throws {
         try await memoryStore.update(memory)
     }
+
+    func preload() async throws {
+        try await candidateStore.preload()
+        try await memoryStore.preload()
+    }
 }
 
 // MARK: - Project Repository
@@ -93,5 +102,9 @@ final class FileBackedProjectRepository: ProjectRepository {
 
     func delete(id: UUID) async throws {
         try await store.delete(id: id)
+    }
+
+    func preload() async throws {
+        try await store.preload()
     }
 }

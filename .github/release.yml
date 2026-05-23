@@ -1,0 +1,16 @@
+changelog:
+  categories:
+    - title: "Breaking Changes"
+      labels: ["breaking"]
+    - title: "New Features"
+      labels: ["feat", "feature", "enhancement"]
+    - title: "Bug Fixes"
+      labels: ["fix", "bug"]
+    - title: "Refactors"
+      labels: ["refactor"]
+    - title: "Build & CI"
+      labels: ["build", "ci"]
+    - title: "Documentation"
+      labels: ["docs", "documentation"]
+    - title: "Dependencies"
+      labels: ["dependencies"]

@@ -23,7 +23,7 @@ jobs:
           xcodebuild build \
             -project Mnemo.xcodeproj \
             -scheme Mnemo \
-            -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
+            -destination "platform=iOS Simulator,name=iPhone 17 Pro" \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO
 
@@ -32,6 +32,6 @@ jobs:
           xcodebuild test \
             -project Mnemo.xcodeproj \
             -scheme Mnemo \
-            -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
+            -destination "platform=iOS Simulator,name=iPhone 17 Pro" \
             -only-testing MnemoTests \
             CODE_SIGNING_ALLOWED=NO

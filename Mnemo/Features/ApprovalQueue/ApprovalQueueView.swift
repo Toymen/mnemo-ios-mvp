@@ -24,6 +24,10 @@ struct ApprovalQueueView: View {
                 await viewModel?.load()
             }
         }
+        .onAppear {
+            guard viewModel != nil else { return }
+            Task { await viewModel?.load() }
+        }
     }
 }
 

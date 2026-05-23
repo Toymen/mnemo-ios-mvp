@@ -12,6 +12,8 @@ final class CaptureViewModel {
     var showCandidates: Bool = false
     var savedSegmentCount: Int = 0
 
+    private var sessionCandidates: [MemoryCandidate] = []
+
     let speechRecognizer = SpeechRecognizer()
 
     private let captureRepository: any CaptureRepository
@@ -44,12 +46,14 @@ final class CaptureViewModel {
             error = nil
             rawText = ""
             savedSegmentCount = 0
+            sessionCandidates = []
             speechRecognizer.startRecording()
         }
     }
 
     var canSubmit: Bool {
         if isProcessing { return false }
+        if !sessionCandidates.isEmpty { return true }
         if !rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
         if speechRecognizer.isRecording && !speechRecognizer.transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
         return false
@@ -67,47 +71,55 @@ final class CaptureViewModel {
         }
 
         let text = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
-
         let isVoice = wasRecording || !speechRecognizer.transcript.isEmpty
-        let transcript: String? = isVoice ? text : nil
+        let hasSessionCandidates = !sessionCandidates.isEmpty
+
+        guard !text.isEmpty || hasSessionCandidates else { return }
 
         isProcessing = true
         error = nil
         defer { isProcessing = false }
 
-        do {
-            var capture = Capture(
-                inputType: isVoice ? .voice : .text,
-                rawText: text,
-                transcript: transcript
-            )
-            try await captureRepository.save(capture)
+        var finalCandidates: [MemoryCandidate] = []
 
-            let context = MemoryContext()
-            let candidates = try await extractionEngine.extractCandidates(from: capture, context: context)
+        if !text.isEmpty {
+            do {
+                let transcript: String? = isVoice ? text : nil
+                var capture = Capture(
+                    inputType: isVoice ? .voice : .text,
+                    rawText: text,
+                    transcript: transcript
+                )
+                try await captureRepository.save(capture)
 
-            for candidate in candidates {
-                try await memoryRepository.saveCandidate(candidate)
-            }
+                let context = MemoryContext()
+                let candidates = try await extractionEngine.extractCandidates(from: capture, context: context)
 
-            capture.processingStatus = .processed
-            capture.createdCandidateIds = candidates.map { $0.id }
-            try await captureRepository.update(capture)
+                for candidate in candidates {
+                    try await memoryRepository.saveCandidate(candidate)
+                }
 
-            generatedCandidates = candidates
-            showCandidates = true
-            rawText = ""
-            speechRecognizer.clearTranscript()
-            await loadRecent()
-        } catch {
-            self.error = error.localizedDescription
-            if let firstCapture = try? await captureRepository.fetchAll().last {
-                var failed = firstCapture
-                failed.processingStatus = .failed
-                try? await captureRepository.update(failed)
+                capture.processingStatus = .processed
+                capture.createdCandidateIds = candidates.map { $0.id }
+                try await captureRepository.update(capture)
+
+                finalCandidates = candidates
+            } catch {
+                self.error = error.localizedDescription
+                if let firstCapture = try? await captureRepository.fetchAll().last {
+                    var failed = firstCapture
+                    failed.processingStatus = .failed
+                    try? await captureRepository.update(failed)
+                }
             }
         }
+
+        generatedCandidates = sessionCandidates + finalCandidates
+        sessionCandidates = []
+        showCandidates = !generatedCandidates.isEmpty
+        rawText = ""
+        speechRecognizer.clearTranscript()
+        await loadRecent()
     }
 
     func loadRecent() async {
@@ -142,6 +154,7 @@ final class CaptureViewModel {
             capture.createdCandidateIds = candidates.map { $0.id }
             try await captureRepository.update(capture)
 
+            sessionCandidates.append(contentsOf: candidates)
             savedSegmentCount += 1
             await loadRecent()
         } catch {

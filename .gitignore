@@ -1,5 +1,6 @@
 # Xcode
 *.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/swiftpm/
 *.xcodeproj/xcuserdata/
 DerivedData/
 *.xccheckout
@@ -14,6 +15,7 @@ DerivedData/
 !default.perspectivev3
 xcuserdata/
 *.xcscmblueprint
+*.xcresult
 build/
 *.hmap
 *.ipa
@@ -24,6 +26,7 @@ build/
 .build/
 .swiftpm/
 Packages/
+SourcePackages/
 
 # Python / Server
 __pycache__/
@@ -52,6 +55,9 @@ Thumbs.db
 *.swp
 *.swo
 .idea/
+
+# Runtime-generated vault data
+MnemoVault/
 
 # Agent generated (keep tracked files but not local cache)
 .agent/CONTEXT_SUMMARY.md

@@ -31,6 +31,17 @@ struct LLMMemoryCandidate {
     var reason: String
 }
 
+@Generable
+struct LLMMarkdownOutput {
+    @Guide(description: """
+    A complete markdown document with a syntactically valid Mermaid diagram. \
+    Use only graph TD or graph LR. Do NOT use mindmap or other diagram types. \
+    Wrap the diagram in a fenced code block tagged 'mermaid'. \
+    Keep the diagram simple: 3–6 nodes maximum.
+    """)
+    var markdown: String
+}
+
 struct FoundationModelsExtractionEngine: MemoryExtractionEngine {
     let engineName = "Apple Intelligence"
     private let fallback = RuleBasedMemoryExtractionEngine()
@@ -80,5 +91,45 @@ struct FoundationModelsExtractionEngine: MemoryExtractionEngine {
 
     private func buildContextHint(for capture: Capture) -> String? {
         nil
+    }
+
+    // MARK: - Diagram Retry
+
+    func regenerateMarkdown(for text: String, attempt: Int) async -> String? {
+        guard SystemLanguageModel.default.isAvailable else { return nil }
+
+        let instructions: String
+        if attempt == 0 {
+            instructions = """
+                You are a technical documentation assistant. \
+                Generate a markdown document with a syntactically valid Mermaid diagram. \
+                Use ONLY graph TD or graph LR. Never use mindmap or other types. \
+                Keep diagrams simple: 3–6 nodes, straightforward arrows.
+                """
+        } else {
+            instructions = """
+                You are a technical documentation assistant. \
+                Previous Mermaid syntax was invalid. Use ONLY this minimal format — no extras:
+                graph TD
+                    A[Label] --> B[Label]
+                    A --> C[Label]
+                Do not add subgraphs, styles, classDef, or special characters in labels.
+                """
+        }
+
+        let session = LanguageModelSession(instructions: instructions)
+        let prompt = """
+            Generate an enriched markdown document for this note. \
+            Include a blockquote of the original text, a valid Mermaid diagram, and a short summary.
+
+            Note: "\(text)"
+            """
+
+        do {
+            let response = try await session.respond(to: prompt, generating: LLMMarkdownOutput.self)
+            return response.content.markdown
+        } catch {
+            return nil
+        }
     }
 }

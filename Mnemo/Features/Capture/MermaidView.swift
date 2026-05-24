@@ -5,6 +5,7 @@ import WebKit
 struct MermaidView: UIViewRepresentable {
     let markdown: String
     @Binding var contentHeight: CGFloat
+    var onDiagramValidated: ((Bool) -> Void)?
 
     func makeCoordinator() -> Coordinator {
         Coordinator($contentHeight)
@@ -15,7 +16,9 @@ struct MermaidView: UIViewRepresentable {
         preferences.allowsContentJavaScript = true
         let config = WKWebViewConfiguration()
         config.defaultWebpagePreferences = preferences
+        // Register both handlers up-front so JS can always reach them
         config.userContentController.add(context.coordinator, name: "heightChanged")
+        config.userContentController.add(context.coordinator, name: "diagramValidated")
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
@@ -27,11 +30,11 @@ struct MermaidView: UIViewRepresentable {
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
+        context.coordinator.onDiagramValidated = onDiagramValidated
         webView.loadHTMLString(buildHTML(markdown), baseURL: nil)
     }
 
     private func buildHTML(_ markdown: String) -> String {
-        // JSON-encode to safely inject arbitrary markdown into JS
         let escaped = (try? String(data: JSONEncoder().encode(markdown), encoding: .utf8)) ?? "\"\""
         return """
         <!DOCTYPE html>
@@ -72,10 +75,23 @@ struct MermaidView: UIViewRepresentable {
                 };
                 marked.use({renderer});
                 document.getElementById('content').innerHTML=marked.parse(\(escaped));
-                mermaid.run().finally(()=>{
+
+                function reportValidation(ok){
                     const h=document.documentElement.scrollHeight;
                     window.webkit.messageHandlers.heightChanged.postMessage(h);
-                });
+                    window.webkit.messageHandlers.diagramValidated.postMessage(ok);
+                }
+
+                mermaid.run().then(()=>{
+                    // A successful render produces <svg> elements with non-zero dimensions
+                    const svgs=document.querySelectorAll('.mermaid svg');
+                    const valid=svgs.length>0&&Array.from(svgs).some(svg=>{
+                        const w=parseFloat(svg.getAttribute('width')||'0');
+                        const bw=svg.getBoundingClientRect().width;
+                        return w>10||bw>10;
+                    });
+                    reportValidation(valid);
+                }).catch(()=>reportValidation(false));
             </script>
         </body>
         </html>
@@ -84,12 +100,14 @@ struct MermaidView: UIViewRepresentable {
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         @Binding var contentHeight: CGFloat
+        var onDiagramValidated: ((Bool) -> Void)?
 
         init(_ binding: Binding<CGFloat>) {
             self._contentHeight = binding
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            // Fallback: read height once DOM is ready (before Mermaid finishes)
             webView.evaluateJavaScript("document.documentElement.scrollHeight") { result, _ in
                 guard let h = result as? CGFloat, h > 0 else { return }
                 DispatchQueue.main.async { self.contentHeight = h }
@@ -97,13 +115,21 @@ struct MermaidView: UIViewRepresentable {
         }
 
         func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
-            guard message.name == "heightChanged" else { return }
-            let h: CGFloat
-            if let d = message.body as? Double { h = CGFloat(d) }
-            else if let i = message.body as? Int { h = CGFloat(i) }
-            else { return }
-            guard h > 0 else { return }
-            DispatchQueue.main.async { self.contentHeight = h }
+            switch message.name {
+            case "heightChanged":
+                let h: CGFloat
+                if let d = message.body as? Double { h = CGFloat(d) }
+                else if let i = message.body as? Int { h = CGFloat(i) }
+                else { return }
+                if h > 0 { DispatchQueue.main.async { self.contentHeight = h } }
+
+            case "diagramValidated":
+                let isValid = (message.body as? Bool) ?? false
+                DispatchQueue.main.async { self.onDiagramValidated?(isValid) }
+
+            default:
+                break
+            }
         }
     }
 }

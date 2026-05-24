@@ -106,7 +106,7 @@ private struct CaptureContentView: View {
         .sheet(isPresented: $viewModel.showCandidates) {
             CaptureResultSheet(
                 rawText: viewModel.capturedRawText,
-                enrichedMarkdown: viewModel.enrichedMarkdown,
+                initialMarkdown: viewModel.enrichedMarkdown,
                 candidates: viewModel.generatedCandidates
             )
         }
@@ -117,7 +117,7 @@ private struct CaptureContentView: View {
 
 struct CaptureResultSheet: View {
     let rawText: String
-    let enrichedMarkdown: String?
+    let initialMarkdown: String?
     let candidates: [MemoryCandidate]
 
     @EnvironmentObject private var container: AppContainer
@@ -126,6 +126,11 @@ struct CaptureResultSheet: View {
     @State private var rejectedIds: Set<UUID> = []
     @State private var error: String?
     @State private var mermaidHeight: CGFloat = 320
+    @State private var enrichedMarkdown: String?
+    @State private var isRetrying = false
+    @State private var retryCount = 0
+    @State private var diagramFailed = false
+    private let maxRetries = 2
 
     var body: some View {
         NavigationStack {
@@ -145,6 +150,29 @@ struct CaptureResultSheet: View {
                     if let md = enrichedMarkdown {
                         sectionHeader("Enriched View", icon: "sparkles")
                         enrichedCard(md: md)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 24)
+                    } else if isRetrying {
+                        sectionHeader("Enriched View", icon: "sparkles")
+                        HStack(spacing: 10) {
+                            ProgressView()
+                            Text("Regenerating diagram…")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 24)
+                    } else if diagramFailed {
+                        sectionHeader("Enriched View", icon: "sparkles")
+                        Label("Diagram could not be rendered.", systemImage: "exclamationmark.triangle")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(16)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
                             .padding(.horizontal, 16)
                             .padding(.bottom, 24)
                     }
@@ -179,6 +207,32 @@ struct CaptureResultSheet: View {
                     Button("Done") { dismiss() }
                 }
             }
+            .onAppear { enrichedMarkdown = initialMarkdown }
+        }
+    }
+
+    private func handleValidation(_ isValid: Bool) {
+        guard !isValid, !isRetrying else { return }
+        if retryCount >= maxRetries {
+            enrichedMarkdown = nil
+            diagramFailed = true
+            return
+        }
+        Task { await retryEnrichment() }
+    }
+
+    @MainActor
+    private func retryEnrichment() async {
+        isRetrying = true
+        enrichedMarkdown = nil
+        let attempt = retryCount
+        retryCount += 1
+        let result = await container.extractionEngine.regenerateMarkdown(for: rawText, attempt: attempt)
+        isRetrying = false
+        if let md = result {
+            enrichedMarkdown = md
+        } else {
+            diagramFailed = true
         }
     }
 
@@ -195,9 +249,11 @@ struct CaptureResultSheet: View {
     private func enrichedCard(md: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             #if os(iOS)
-            MermaidView(markdown: md, contentHeight: $mermaidHeight)
-                .frame(height: mermaidHeight)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+            MermaidView(markdown: md, contentHeight: $mermaidHeight) { isValid in
+                handleValidation(isValid)
+            }
+            .frame(height: mermaidHeight)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             #else
             Markdown(md)
                 .padding(16)

@@ -38,7 +38,7 @@ final class MarkdownExporterTests: XCTestCase {
         let memory = makeMemory()
         let md = exporter.markdown(for: memory)
         XCTAssertTrue(md.hasPrefix("---\n"))
-        XCTAssertTrue(md.contains("type:"))
+        XCTAssertTrue(md.contains("topic:"))
         XCTAssertTrue(md.contains("confidence:"))
     }
 
@@ -48,11 +48,17 @@ final class MarkdownExporterTests: XCTestCase {
         XCTAssertTrue(md.contains(memory.reason))
     }
 
+    func testMarkdownContainsTopic() {
+        let memory = makeMemory()
+        let md = exporter.markdown(for: memory)
+        XCTAssertTrue(md.contains(memory.topic))
+    }
+
     private func makeMemory() -> ApprovedMemory {
         ApprovedMemory(
             sourceCandidateId: UUID(),
             sourceCaptureId: UUID(),
-            type: .learning,
+            topic: "learning",
             text: "I learned that unit tests catch regressions.",
             confidence: 0.9,
             reason: "Explicit learning statement."

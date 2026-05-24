@@ -22,9 +22,9 @@ final class RepositoryTests: XCTestCase {
 
     func testInMemoryMemoryRepositoryPendingCandidates() async throws {
         let repo = InMemoryMemoryRepository()
-        var approved = MemoryCandidate(sourceCaptureId: UUID(), type: .goal, proposedText: "x", confidence: 0.9, reason: "r")
+        var approved = MemoryCandidate(sourceCaptureId: UUID(), topic: "goal", proposedText: "x", confidence: 0.9, reason: "r")
         approved.status = .approved
-        let pending = MemoryCandidate(sourceCaptureId: UUID(), type: .learning, proposedText: "y", confidence: 0.8, reason: "r")
+        let pending = MemoryCandidate(sourceCaptureId: UUID(), topic: "learning", proposedText: "y", confidence: 0.8, reason: "r")
         try await repo.saveCandidate(approved)
         try await repo.saveCandidate(pending)
 

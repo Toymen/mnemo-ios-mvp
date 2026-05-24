@@ -12,7 +12,7 @@ final class ApprovalInvariantTests: XCTestCase {
 
         let candidate = MemoryCandidate(
             sourceCaptureId: UUID(),
-            type: .learning,
+            topic: "learning",
             proposedText: "I learned Swift concurrency.",
             confidence: 0.9,
             reason: "Explicit learning statement."
@@ -22,7 +22,7 @@ final class ApprovalInvariantTests: XCTestCase {
         let memory = try await service.approve(candidate: candidate)
         XCTAssertEqual(memory.sourceCandidateId, candidate.id)
         XCTAssertEqual(memory.text, "I learned Swift concurrency.")
-        XCTAssertEqual(memory.type, .learning)
+        XCTAssertEqual(memory.topic, "learning")
     }
 
     func testApproveWithEditedTextUsesEditedText() async throws {
@@ -32,7 +32,7 @@ final class ApprovalInvariantTests: XCTestCase {
 
         let candidate = MemoryCandidate(
             sourceCaptureId: UUID(),
-            type: .preference,
+            topic: "preference",
             proposedText: "I prefer dark mode.",
             confidence: 0.8,
             reason: "Preference statement."
@@ -50,7 +50,7 @@ final class ApprovalInvariantTests: XCTestCase {
 
         let candidate = MemoryCandidate(
             sourceCaptureId: UUID(),
-            type: .general,
+            topic: "general",
             proposedText: "Some text.",
             confidence: 0.5,
             reason: "General."
@@ -72,7 +72,7 @@ final class ApprovalInvariantTests: XCTestCase {
 
         var candidate = MemoryCandidate(
             sourceCaptureId: UUID(),
-            type: .general,
+            topic: "general",
             proposedText: "Some text.",
             confidence: 0.5,
             reason: "General."
@@ -95,7 +95,7 @@ final class ApprovalInvariantTests: XCTestCase {
 
         let candidate = MemoryCandidate(
             sourceCaptureId: UUID(),
-            type: .general,
+            topic: "general",
             proposedText: "Some text.",
             confidence: 0.5,
             reason: "General."
@@ -111,10 +111,10 @@ final class ApprovalInvariantTests: XCTestCase {
     }
 
     func testConfidenceIsClamped() {
-        let c = MemoryCandidate(sourceCaptureId: UUID(), type: .general, proposedText: "x", confidence: 1.5, reason: "r")
+        let c = MemoryCandidate(sourceCaptureId: UUID(), topic: "general", proposedText: "x", confidence: 1.5, reason: "r")
         XCTAssertEqual(c.confidence, 1.0)
 
-        let c2 = MemoryCandidate(sourceCaptureId: UUID(), type: .general, proposedText: "x", confidence: -0.1, reason: "r")
+        let c2 = MemoryCandidate(sourceCaptureId: UUID(), topic: "general", proposedText: "x", confidence: -0.1, reason: "r")
         XCTAssertEqual(c2.confidence, 0.0)
     }
 }

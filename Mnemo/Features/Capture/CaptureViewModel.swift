@@ -9,6 +9,8 @@ final class CaptureViewModel {
     var error: String?
     var recentCaptures: [Capture] = []
     var generatedCandidates: [MemoryCandidate] = []
+    var enrichedMarkdown: String? = nil
+    var capturedRawText: String = ""
     var showCandidates: Bool = false
     var savedSegmentCount: Int = 0
 
@@ -81,6 +83,7 @@ final class CaptureViewModel {
         defer { isProcessing = false }
 
         var finalCandidates: [MemoryCandidate] = []
+        var finalMarkdown: String? = nil
 
         if !text.isEmpty {
             do {
@@ -93,17 +96,19 @@ final class CaptureViewModel {
                 try await captureRepository.save(capture)
 
                 let context = MemoryContext()
-                let candidates = try await extractionEngine.extractCandidates(from: capture, context: context)
+                let result = try await extractionEngine.extract(from: capture, context: context)
 
-                for candidate in candidates {
+                for candidate in result.candidates {
                     try await memoryRepository.saveCandidate(candidate)
                 }
 
                 capture.processingStatus = .processed
-                capture.createdCandidateIds = candidates.map { $0.id }
+                capture.createdCandidateIds = result.candidates.map { $0.id }
+                capture.enrichedMarkdown = result.enrichedMarkdown
                 try await captureRepository.update(capture)
 
-                finalCandidates = candidates
+                finalCandidates = result.candidates
+                finalMarkdown = result.enrichedMarkdown
             } catch {
                 self.error = error.localizedDescription
                 if let firstCapture = try? await captureRepository.fetchAll().last {
@@ -114,6 +119,8 @@ final class CaptureViewModel {
             }
         }
 
+        capturedRawText = text
+        enrichedMarkdown = finalMarkdown
         generatedCandidates = sessionCandidates + finalCandidates
         sessionCandidates = []
         showCandidates = !generatedCandidates.isEmpty
@@ -144,17 +151,17 @@ final class CaptureViewModel {
             try await captureRepository.save(capture)
 
             let context = MemoryContext()
-            let candidates = try await extractionEngine.extractCandidates(from: capture, context: context)
+            let result = try await extractionEngine.extract(from: capture, context: context)
 
-            for candidate in candidates {
+            for candidate in result.candidates {
                 try await memoryRepository.saveCandidate(candidate)
             }
 
             capture.processingStatus = .processed
-            capture.createdCandidateIds = candidates.map { $0.id }
+            capture.createdCandidateIds = result.candidates.map { $0.id }
             try await captureRepository.update(capture)
 
-            sessionCandidates.append(contentsOf: candidates)
+            sessionCandidates.append(contentsOf: result.candidates)
             savedSegmentCount += 1
             await loadRecent()
         } catch {

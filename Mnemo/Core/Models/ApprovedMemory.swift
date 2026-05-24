@@ -6,7 +6,7 @@ struct ApprovedMemory: Identifiable, Codable, Sendable {
     let id: UUID
     let sourceCandidateId: UUID
     let sourceCaptureId: UUID
-    let type: CandidateType
+    let topic: String
     let text: String
     let confidence: Double
     let reason: String
@@ -20,7 +20,7 @@ struct ApprovedMemory: Identifiable, Codable, Sendable {
         id: UUID = UUID(),
         sourceCandidateId: UUID,
         sourceCaptureId: UUID,
-        type: CandidateType,
+        topic: String,
         text: String,
         confidence: Double,
         reason: String,
@@ -32,7 +32,7 @@ struct ApprovedMemory: Identifiable, Codable, Sendable {
         self.id = id
         self.sourceCandidateId = sourceCandidateId
         self.sourceCaptureId = sourceCaptureId
-        self.type = type
+        self.topic = topic
         self.text = text
         self.confidence = max(0.0, min(1.0, confidence))
         self.reason = reason

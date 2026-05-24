@@ -1,4 +1,5 @@
 import SwiftUI
+import MarkdownUI
 
 struct MemoryListView: View {
     @EnvironmentObject private var container: AppContainer
@@ -11,7 +12,7 @@ struct MemoryListView: View {
         guard !searchText.isEmpty else { return memories }
         return memories.filter {
             $0.text.localizedCaseInsensitiveContains(searchText) ||
-            $0.type.rawValue.localizedCaseInsensitiveContains(searchText)
+            $0.topic.localizedCaseInsensitiveContains(searchText)
         }
     }
 
@@ -65,7 +66,7 @@ private struct MemoryRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                TypeBadge(type: memory.type)
+                TopicBadge(topic: memory.topic)
                 Spacer()
                 Text(memory.createdAt, style: .date)
                     .font(.caption2)
@@ -74,7 +75,7 @@ private struct MemoryRowView: View {
             Text(memory.text)
                 .lineLimit(2)
             if let path = memory.markdownPath {
-                Text("📄 \(URL(fileURLWithPath: path).lastPathComponent)")
+                Text(URL(fileURLWithPath: path).lastPathComponent)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -87,36 +88,52 @@ struct MemoryDetailView: View {
     let memory: ApprovedMemory
 
     var body: some View {
-        Form {
-            Section("Memory") {
-                Text(memory.text)
-            }
-            Section("Details") {
-                LabeledContent("Type") { TypeBadge(type: memory.type) }
-                LabeledContent("Confidence") { Text("\(Int(memory.confidence * 100))%") }
-                LabeledContent("Created") { Text(memory.createdAt, style: .date) }
-            }
-            Section("Reason") {
-                Text(memory.reason)
-                    .foregroundStyle(.secondary)
-            }
-            if let path = memory.markdownPath {
-                Section("Vault") {
-                    Text(path)
-                        .font(.caption)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                GroupBox("Memory") {
+                    Markdown(memory.text)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 8) {
+                        LabeledContent("Topic") { TopicBadge(topic: memory.topic) }
+                        LabeledContent("Confidence") { Text("\(Int(memory.confidence * 100))%") }
+                        LabeledContent("Created") { Text(memory.createdAt, style: .date) }
+                    }
+                } label: {
+                    Text("Details")
+                }
+
+                GroupBox("Reason") {
+                    Text(memory.reason)
                         .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                if let path = memory.markdownPath {
+                    GroupBox("Vault") {
+                        Text(path)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+
+                GroupBox("Source") {
+                    VStack(alignment: .leading, spacing: 4) {
+                        LabeledContent("Capture ID") {
+                            Text(memory.sourceCaptureId.uuidString.prefix(8) + "...")
+                                .font(.caption)
+                        }
+                        LabeledContent("Candidate ID") {
+                            Text(memory.sourceCandidateId.uuidString.prefix(8) + "...")
+                                .font(.caption)
+                        }
+                    }
                 }
             }
-            Section("Source") {
-                LabeledContent("Capture ID") {
-                    Text(memory.sourceCaptureId.uuidString.prefix(8) + "...")
-                        .font(.caption)
-                }
-                LabeledContent("Candidate ID") {
-                    Text(memory.sourceCandidateId.uuidString.prefix(8) + "...")
-                        .font(.caption)
-                }
-            }
+            .padding()
         }
         .navigationTitle("Memory")
     }

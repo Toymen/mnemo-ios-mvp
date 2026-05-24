@@ -6,57 +6,63 @@ final class RuleBasedMemoryExtractionEngineTests: XCTestCase {
 
     func testExtractsLearningStatement() async throws {
         let capture = Capture(rawText: "I learned that async/await makes concurrency cleaner.")
-        let candidates = try await engine.extractCandidates(from: capture, context: MemoryContext())
-        XCTAssertFalse(candidates.isEmpty)
-        XCTAssertTrue(candidates.contains { $0.type == .learning })
+        let result = try await engine.extract(from: capture, context: MemoryContext())
+        XCTAssertFalse(result.candidates.isEmpty)
+        XCTAssertTrue(result.candidates.contains { $0.topic == "learning" })
     }
 
     func testExtractsPreferenceStatement() async throws {
         let capture = Capture(rawText: "I prefer using SwiftUI over UIKit for new projects.")
-        let candidates = try await engine.extractCandidates(from: capture, context: MemoryContext())
-        XCTAssertTrue(candidates.contains { $0.type == .preference })
+        let result = try await engine.extract(from: capture, context: MemoryContext())
+        XCTAssertTrue(result.candidates.contains { $0.topic == "preference" })
     }
 
     func testExtractsGoalStatement() async throws {
         let capture = Capture(rawText: "I want to focus on shipping the MVP by end of month.")
-        let candidates = try await engine.extractCandidates(from: capture, context: MemoryContext())
-        XCTAssertTrue(candidates.contains { $0.type == .goal })
+        let result = try await engine.extract(from: capture, context: MemoryContext())
+        XCTAssertTrue(result.candidates.contains { $0.topic == "goal" })
     }
 
     func testExtractsProjectStatement() async throws {
         let capture = Capture(rawText: "I am working on the authentication module.")
-        let candidates = try await engine.extractCandidates(from: capture, context: MemoryContext())
-        XCTAssertTrue(candidates.contains { $0.type == .project })
+        let result = try await engine.extract(from: capture, context: MemoryContext())
+        XCTAssertTrue(result.candidates.contains { $0.topic == "project" })
     }
 
     func testDetectsAmbiguousReference() async throws {
         let capture = Capture(rawText: "We need to fix the issue there.")
-        let candidates = try await engine.extractCandidates(from: capture, context: MemoryContext())
-        XCTAssertTrue(candidates.contains { $0.type == .clarificationNeeded })
+        let result = try await engine.extract(from: capture, context: MemoryContext())
+        XCTAssertTrue(result.candidates.contains { $0.topic == "clarification" })
     }
 
-    func testFallsBackToGeneralForShortUnmatchedText() async throws {
+    func testFallsBackToGeneralForUnmatchedText() async throws {
         let capture = Capture(rawText: "Interesting conversation with the team today about the roadmap.")
-        let candidates = try await engine.extractCandidates(from: capture, context: MemoryContext())
-        XCTAssertFalse(candidates.isEmpty)
-        XCTAssertTrue(candidates.allSatisfy { $0.type == .general || $0.type == .clarificationNeeded })
+        let result = try await engine.extract(from: capture, context: MemoryContext())
+        XCTAssertFalse(result.candidates.isEmpty)
+        XCTAssertTrue(result.candidates.allSatisfy { $0.topic == "general" || $0.topic == "clarification" })
     }
 
-    func testEmptyTextProducesNoGeneral() async throws {
+    func testEmptyTextProducesNoCandidates() async throws {
         let capture = Capture(rawText: "  ")
-        let candidates = try await engine.extractCandidates(from: capture, context: MemoryContext())
-        XCTAssertTrue(candidates.isEmpty)
+        let result = try await engine.extract(from: capture, context: MemoryContext())
+        XCTAssertTrue(result.candidates.isEmpty)
     }
 
     func testCandidateSourceCaptureIdMatches() async throws {
         let capture = Capture(rawText: "I learned something important.")
-        let candidates = try await engine.extractCandidates(from: capture, context: MemoryContext())
-        XCTAssertTrue(candidates.allSatisfy { $0.sourceCaptureId == capture.id })
+        let result = try await engine.extract(from: capture, context: MemoryContext())
+        XCTAssertTrue(result.candidates.allSatisfy { $0.sourceCaptureId == capture.id })
     }
 
     func testCandidatesHaveNonEmptyProposedText() async throws {
         let capture = Capture(rawText: "I prefer remote work and I learned TypeScript last year.")
-        let candidates = try await engine.extractCandidates(from: capture, context: MemoryContext())
-        XCTAssertTrue(candidates.allSatisfy { !$0.proposedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
+        let result = try await engine.extract(from: capture, context: MemoryContext())
+        XCTAssertTrue(result.candidates.allSatisfy { !$0.proposedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
+    }
+
+    func testEnrichedMarkdownIsNilForRuleBased() async throws {
+        let capture = Capture(rawText: "I learned Swift concurrency.")
+        let result = try await engine.extract(from: capture, context: MemoryContext())
+        XCTAssertNil(result.enrichedMarkdown)
     }
 }

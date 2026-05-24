@@ -15,7 +15,7 @@ struct MarkdownExporter: MarkdownExporting {
         return """
         ---
         id: "\(memory.id.uuidString)"
-        type: "\(memory.type.rawValue)"
+        topic: "\(memory.topic)"
         created_at: "\(created)"
         updated_at: "\(updated)"
         source_capture_id: "\(memory.sourceCaptureId.uuidString)"
@@ -25,6 +25,7 @@ struct MarkdownExporter: MarkdownExporting {
         tags:
           - mnemo
           - memory
+          - \(memory.topic)
         ---
 
         # \(titleSlug(from: memory.text))

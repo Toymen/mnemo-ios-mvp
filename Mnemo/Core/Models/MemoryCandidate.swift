@@ -11,7 +11,7 @@ enum CandidateStatus: String, Codable, Sendable {
 struct MemoryCandidate: Identifiable, Codable, Sendable {
     let id: UUID
     let sourceCaptureId: UUID
-    let type: CandidateType
+    let topic: String
     let proposedText: String
     let confidence: Double
     let reason: String
@@ -23,7 +23,7 @@ struct MemoryCandidate: Identifiable, Codable, Sendable {
     init(
         id: UUID = UUID(),
         sourceCaptureId: UUID,
-        type: CandidateType,
+        topic: String,
         proposedText: String,
         confidence: Double,
         reason: String,
@@ -34,7 +34,7 @@ struct MemoryCandidate: Identifiable, Codable, Sendable {
     ) {
         self.id = id
         self.sourceCaptureId = sourceCaptureId
-        self.type = type
+        self.topic = topic
         self.proposedText = proposedText
         self.confidence = max(0.0, min(1.0, confidence))
         self.reason = reason

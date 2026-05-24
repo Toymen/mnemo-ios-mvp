@@ -76,7 +76,7 @@ private struct CandidateRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                TypeBadge(type: candidate.type)
+                TopicBadge(topic: candidate.topic)
                 Spacer()
                 Text("\(Int(candidate.confidence * 100))%")
                     .font(.caption)

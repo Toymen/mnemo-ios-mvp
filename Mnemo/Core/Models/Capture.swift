@@ -19,6 +19,7 @@ struct Capture: Identifiable, Codable, Sendable {
     let transcript: String?
     var processingStatus: CaptureProcessingStatus
     var createdCandidateIds: [UUID]
+    var enrichedMarkdown: String?
 
     init(
         id: UUID = UUID(),
@@ -27,7 +28,8 @@ struct Capture: Identifiable, Codable, Sendable {
         rawText: String,
         transcript: String? = nil,
         processingStatus: CaptureProcessingStatus = .pending,
-        createdCandidateIds: [UUID] = []
+        createdCandidateIds: [UUID] = [],
+        enrichedMarkdown: String? = nil
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -36,6 +38,7 @@ struct Capture: Identifiable, Codable, Sendable {
         self.transcript = transcript
         self.processingStatus = processingStatus
         self.createdCandidateIds = createdCandidateIds
+        self.enrichedMarkdown = enrichedMarkdown
     }
 
     var effectiveText: String { transcript ?? rawText }

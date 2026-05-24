@@ -29,7 +29,7 @@ final class AppContainer: ObservableObject {
         self.captureRepository = captureRepo
         self.memoryRepository = memoryRepo
         self.projectRepository = projectRepo
-        self.extractionEngine = RuleBasedMemoryExtractionEngine()
+        self.extractionEngine = FoundationModelsExtractionEngine()
         self.approvalService = ApprovalService(
             memoryRepository: memoryRepo,
             captureRepository: captureRepo

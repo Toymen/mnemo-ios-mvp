@@ -25,6 +25,7 @@
 		776C605D2B36DEA6509F52AE /* OllamaExtractionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3071058219000C6D42639F1F /* OllamaExtractionEngine.swift */; };
 		831D18C1C3BF8108F31C1891 /* FileBackedRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB772BB2EE97C8F4664FED1A /* FileBackedRepositories.swift */; };
 		83E4891EBA5BB36BD17A37EE /* ApprovalService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2548B194D069E63661E18E /* ApprovalService.swift */; };
+		8492564CADB478AB6265B3A3 /* FoundationModelsExtractionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA67A144E3313AFADDCE34A5 /* FoundationModelsExtractionEngine.swift */; };
 		867327ECE5B3042486F9EB46 /* MnemoLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61AB5179398D97B399FFB148 /* MnemoLogo.swift */; };
 		89C127103B311693FD32346D /* ProjectRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 374152753B237D2E5B5B4669 /* ProjectRepository.swift */; };
 		8CC326FA2D844D1B06E92077 /* MemoryCandidate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 267A344E4CB3E81BA5041519 /* MemoryCandidate.swift */; };
@@ -36,6 +37,7 @@
 		A0B8C3AD06F5CB03E178908A /* MockLLMExtractionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C24FB2B0ED419568821E93 /* MockLLMExtractionEngine.swift */; };
 		A17C70715582AE287B785AB5 /* ApprovalQueueViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F6949835B987AE451663033 /* ApprovalQueueViewModel.swift */; };
 		A5BC813B3E5B0DA689FABD51 /* ContextGapDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06FEA1301058CF577869A084 /* ContextGapDetectorTests.swift */; };
+		AB16AFC92187C4AD42E63498 /* MermaidView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E653CA1E40B05906C3D2AC70 /* MermaidView.swift */; };
 		ADD9C626385023CC824F8532 /* MarkdownExporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75EA34C8095E50F942D22206 /* MarkdownExporting.swift */; };
 		AEEF3E56FCFB5EA3BFE5AF75 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CE115E86609D8FCDDAE269 /* ContentView.swift */; };
 		B03A0D4F8AE11CB45CAC36A0 /* DailyReflectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4528DB4700FE830C939F8ACE /* DailyReflectionView.swift */; };
@@ -44,6 +46,7 @@
 		B3050EC56A287D0C1E108FCD /* CaptureRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40E807F320D3091DF9B32056 /* CaptureRepository.swift */; };
 		BB89203550C07C7B6CDF7B43 /* ProjectListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18ADEA7F6137857FECC507FB /* ProjectListView.swift */; };
 		C13DCA648DDDFA529C2F0BB3 /* MemoryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DB26A703CE578090E956E73 /* MemoryListView.swift */; };
+		C2F59E7DDD1B14749A6061B9 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 8C5177E709D86CEB01606BE9 /* MarkdownUI */; };
 		C43BC14F10FFC68CFCC6A1D9 /* ContextGapDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78AE8CB99F5A49016D11B5CF /* ContextGapDetector.swift */; };
 		C64A43B11C547E5BAF82305F /* MarkdownExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B970AEA1807D50ABA982E0F0 /* MarkdownExporterTests.swift */; };
 		C86BD001B27EF95196F20A52 /* ApprovalQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16F338157F09D1A60007EEB4 /* ApprovalQueueView.swift */; };
@@ -121,11 +124,24 @@
 		CD29DA8BC97F1E31935B3BB5 /* LLMClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMClient.swift; sourceTree = "<group>"; };
 		D5BB5D1494D3F1EA8F7795CF /* CandidateDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandidateDetailView.swift; sourceTree = "<group>"; };
 		E3BD24E4E0816CB67BB80CBD /* MnemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MnemoApp.swift; sourceTree = "<group>"; };
+		E653CA1E40B05906C3D2AC70 /* MermaidView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MermaidView.swift; sourceTree = "<group>"; };
+		EA67A144E3313AFADDCE34A5 /* FoundationModelsExtractionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsExtractionEngine.swift; sourceTree = "<group>"; };
 		EBECDB4C904FE373C994FF6E /* RuleBasedMemoryExtractionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleBasedMemoryExtractionEngine.swift; sourceTree = "<group>"; };
 		F31234533FAAB77ED5072683 /* ApprovalInvariantTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApprovalInvariantTests.swift; sourceTree = "<group>"; };
 		F85B747660388016C0ECE137 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		FF47056CF71D53CD72DC15EF /* DailyReflectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReflectionViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		9B82137573E60BD7833864A1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C2F59E7DDD1B14749A6061B9 /* MarkdownUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		0576772979F3C5847BB8D0E1 /* Services */ = {
@@ -135,6 +151,7 @@
 				78AE8CB99F5A49016D11B5CF /* ContextGapDetector.swift */,
 				864EAC1EAF09889F0EB6B988 /* DailyReflectionQuestionService.swift */,
 				B4DB98D03741E265056310B6 /* FileVaultWriter.swift */,
+				EA67A144E3313AFADDCE34A5 /* FoundationModelsExtractionEngine.swift */,
 				5554BA5165F3A9861B0A3ADB /* MarkdownExporter.swift */,
 				65C24FB2B0ED419568821E93 /* MockLLMExtractionEngine.swift */,
 				3071058219000C6D42639F1F /* OllamaExtractionEngine.swift */,
@@ -201,6 +218,7 @@
 			children = (
 				6DAF036F8A8CBE3693060357 /* CaptureView.swift */,
 				1DA50F19241B00DE5A9597BA /* CaptureViewModel.swift */,
+				E653CA1E40B05906C3D2AC70 /* MermaidView.swift */,
 			);
 			path = Capture;
 			sourceTree = "<group>";
@@ -364,6 +382,7 @@
 			buildPhases = (
 				95A86B4875E67964412DA892 /* Sources */,
 				CDDEBE677192E974BDD01EC2 /* Resources */,
+				9B82137573E60BD7833864A1 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -371,6 +390,7 @@
 			);
 			name = Mnemo;
 			packageProductDependencies = (
+				8C5177E709D86CEB01606BE9 /* MarkdownUI */,
 			);
 			productName = Mnemo;
 			productReference = 1AE0EFC39175D243EBC59E06 /* Mnemo.app */;
@@ -401,7 +421,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					0F11B3F5EC8C753D3B04A308 = {
 						ProvisioningStyle = Automatic;
@@ -425,6 +445,9 @@
 			);
 			mainGroup = 0D594C2E101D486DD0AF68F1;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				0A7C7366E49E72584339EED8 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 489C78F24AFF8FBC6E55AFD8 /* Products */;
 			projectDirPath = "";
@@ -494,6 +517,7 @@
 				99B8BD18A075A47E252455E6 /* DailyReflectionViewModel.swift in Sources */,
 				831D18C1C3BF8108F31C1891 /* FileBackedRepositories.swift in Sources */,
 				93121EF022DF6BAF90BA2581 /* FileVaultWriter.swift in Sources */,
+				8492564CADB478AB6265B3A3 /* FoundationModelsExtractionEngine.swift in Sources */,
 				CCBE4C6FDD26F3C6ED4BE95C /* InMemoryRepositories.swift in Sources */,
 				49B8580F897ABEFB9082D90A /* JSONStore.swift in Sources */,
 				02C74591AFA5B3DD28F95493 /* LLMClient.swift in Sources */,
@@ -503,6 +527,7 @@
 				CAC703E2BF48030534498226 /* MemoryExtractionEngine.swift in Sources */,
 				C13DCA648DDDFA529C2F0BB3 /* MemoryListView.swift in Sources */,
 				94071F932BE6301BF5617B69 /* MemoryRepository.swift in Sources */,
+				AB16AFC92187C4AD42E63498 /* MermaidView.swift in Sources */,
 				58FF6FBBCC4C0136B389B397 /* MnemoApp.swift in Sources */,
 				867327ECE5B3042486F9EB46 /* MnemoLogo.swift in Sources */,
 				A0B8C3AD06F5CB03E178908A /* MockLLMExtractionEngine.swift in Sources */,
@@ -536,6 +561,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -552,6 +578,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -568,6 +595,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -603,6 +631,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -801,6 +830,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0A7C7366E49E72584339EED8 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8C5177E709D86CEB01606BE9 /* MarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0A7C7366E49E72584339EED8 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
+			productName = MarkdownUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6432E74F97B2C352F88DC704 /* Project object */;
 }

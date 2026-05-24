@@ -1,4 +1,5 @@
 import SwiftUI
+import MarkdownUI
 
 struct CaptureView: View {
     @EnvironmentObject private var container: AppContainer
@@ -42,9 +43,7 @@ private struct CaptureContentView: View {
     @Bindable var viewModel: CaptureViewModel
 
     private var speechError: String? {
-        if case .error(let msg) = viewModel.speechRecognizer.state {
-            return msg
-        }
+        if case .error(let msg) = viewModel.speechRecognizer.state { return msg }
         return nil
     }
 
@@ -72,13 +71,9 @@ private struct CaptureContentView: View {
                     .buttonStyle(.bordered)
                     .disabled(viewModel.isProcessing)
 
-                    Button(action: {
-                        Task { await viewModel.submitCapture() }
-                    }) {
+                    Button(action: { Task { await viewModel.submitCapture() } }) {
                         HStack {
-                            if viewModel.isProcessing {
-                                ProgressView().scaleEffect(0.8)
-                            }
+                            if viewModel.isProcessing { ProgressView().scaleEffect(0.8) }
                             Text(viewModel.isProcessing ? "Processing..." : "Save & Extract")
                         }
                         .frame(maxWidth: .infinity)
@@ -101,25 +96,7 @@ private struct CaptureContentView: View {
                         NavigationLink {
                             CaptureDetailView(capture: capture)
                         } label: {
-                            HStack(spacing: 12) {
-                                Image(systemName: capture.inputType == .voice ? "mic.fill" : "text.bubble.fill")
-                                    .foregroundStyle(capture.inputType == .voice ? .blue : .secondary)
-                                    .frame(width: 24)
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(capture.rawText)
-                                        .lineLimit(2)
-                                        .font(.body)
-                                    HStack {
-                                        CaptureStatusLabel(capture: capture)
-                                        Spacer()
-                                        Text(capture.createdAt, style: .relative)
-                                            .font(.caption2)
-                                            .foregroundStyle(.tertiary)
-                                    }
-                                }
-                            }
-                            .padding(.vertical, 2)
+                            CaptureRowView(capture: capture)
                         }
                     }
                 }
@@ -127,114 +104,233 @@ private struct CaptureContentView: View {
         }
         .scrollDismissesKeyboard(.interactively)
         .sheet(isPresented: $viewModel.showCandidates) {
-            CandidatesPreviewSheet(candidates: viewModel.generatedCandidates)
-        }
-    }
-}
-
-private struct CaptureStatusLabel: View {
-    let capture: Capture
-
-    var body: some View {
-        switch capture.processingStatus {
-        case .processed:
-            let count = capture.createdCandidateIds.count
-            Label(
-                count == 1 ? "1 candidate" : "\(count) candidates",
-                systemImage: "sparkles"
+            CaptureResultSheet(
+                rawText: viewModel.capturedRawText,
+                enrichedMarkdown: viewModel.enrichedMarkdown,
+                candidates: viewModel.generatedCandidates
             )
-            .font(.caption)
-            .foregroundStyle(.green)
-        case .failed:
-            Label("Failed", systemImage: "exclamationmark.triangle.fill")
-                .font(.caption)
-                .foregroundStyle(.red)
-        case .pending:
-            Label("Processing…", systemImage: "clock")
-                .font(.caption)
-                .foregroundStyle(.orange)
         }
     }
 }
 
-private struct CandidatesPreviewSheet: View {
+// MARK: - Capture Result Sheet
+
+struct CaptureResultSheet: View {
+    let rawText: String
+    let enrichedMarkdown: String?
     let candidates: [MemoryCandidate]
+
     @EnvironmentObject private var container: AppContainer
     @Environment(\.dismiss) private var dismiss
-    @State private var actionedIds: Set<UUID> = []
+    @State private var approvedIds: Set<UUID> = []
+    @State private var rejectedIds: Set<UUID> = []
     @State private var error: String?
+    @State private var mermaidHeight: CGFloat = 320
 
     var body: some View {
         NavigationStack {
-            List {
-                if let error {
-                    Section {
-                        Label(error, systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.red)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Original recording
+                    sectionHeader("Original Recording", icon: "mic.fill")
+                    Text(rawText)
+                        .font(.body)
+                        .padding(16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 24)
+
+                    // Enriched view
+                    if let md = enrichedMarkdown {
+                        sectionHeader("Enriched View", icon: "sparkles")
+                        enrichedCard(md: md)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 24)
                     }
-                }
-                ForEach(candidates) { candidate in
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            TypeBadge(type: candidate.type)
-                            Spacer()
-                            Text("\(Int(candidate.confidence * 100))%")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+
+                    // Candidates
+                    if !candidates.isEmpty {
+                        sectionHeader(
+                            candidates.count == 1 ? "1 Memory Candidate" : "\(candidates.count) Memory Candidates",
+                            icon: "brain.head.profile"
+                        )
+                        if let error {
+                            Label(error, systemImage: "exclamationmark.triangle")
+                                .foregroundStyle(.red)
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 8)
                         }
-                        Text(candidate.proposedText)
-                            .font(.body)
-                        Text(candidate.reason)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-
-                        if actionedIds.contains(candidate.id) {
-                            Label("Done", systemImage: "checkmark.circle.fill")
-                                .font(.caption)
-                                .foregroundStyle(.green)
-                        } else {
-                            HStack(spacing: 12) {
-                                Button {
-                                    Task {
-                                        do {
-                                            _ = try await container.approvalService.approve(candidate: candidate)
-                                            actionedIds.insert(candidate.id)
-                                        } catch {
-                                            self.error = error.localizedDescription
-                                        }
-                                    }
-                                } label: {
-                                    Label("Approve", systemImage: "checkmark.circle.fill")
-                                        .font(.caption)
-                                }
-                                .tint(.green)
-
-                                Button {
-                                    Task {
-                                        do {
-                                            try await container.approvalService.reject(candidate: candidate)
-                                            actionedIds.insert(candidate.id)
-                                        } catch {
-                                            self.error = error.localizedDescription
-                                        }
-                                    }
-                                } label: {
-                                    Label("Reject", systemImage: "xmark.circle.fill")
-                                        .font(.caption)
-                                }
-                                .tint(.red)
-                            }
+                        ForEach(candidates) { candidate in
+                            candidateCard(candidate)
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 12)
                         }
                     }
-                    .padding(.vertical, 4)
+
+                    Spacer(minLength: 32)
                 }
+                .padding(.top, 8)
             }
-            .navigationTitle("\(candidates.count) Candidate(s) Created")
+            .navigationTitle("Capture Results")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func sectionHeader(_ title: String, icon: String) -> some View {
+        Label(title, systemImage: icon)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+    }
+
+    @ViewBuilder
+    private func enrichedCard(md: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            #if os(iOS)
+            MermaidView(markdown: md, contentHeight: $mermaidHeight)
+                .frame(height: mermaidHeight)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            #else
+            Markdown(md)
+                .padding(16)
+            #endif
+        }
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    @ViewBuilder
+    private func candidateCard(_ candidate: MemoryCandidate) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                TopicBadge(topic: candidate.topic)
+                Spacer()
+                Text("\(Int(candidate.confidence * 100))%")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text(candidate.proposedText)
+                .font(.body)
+
+            Text(candidate.reason)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if approvedIds.contains(candidate.id) {
+                Label("Approved", systemImage: "checkmark.circle.fill")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.green)
+            } else if rejectedIds.contains(candidate.id) {
+                Label("Rejected", systemImage: "xmark.circle.fill")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.red)
+            } else {
+                HStack(spacing: 12) {
+                    Button {
+                        Task {
+                            do {
+                                _ = try await container.approvalService.approve(candidate: candidate)
+                                approvedIds.insert(candidate.id)
+                            } catch { self.error = error.localizedDescription }
+                        }
+                    } label: {
+                        Label("Approve", systemImage: "checkmark.circle.fill")
+                            .font(.caption.weight(.medium))
+                    }
+                    .tint(.green)
+                    .buttonStyle(.bordered)
+
+                    Button {
+                        Task {
+                            do {
+                                try await container.approvalService.reject(candidate: candidate)
+                                rejectedIds.insert(candidate.id)
+                            } catch { self.error = error.localizedDescription }
+                        }
+                    } label: {
+                        Label("Reject", systemImage: "xmark.circle.fill")
+                            .font(.caption.weight(.medium))
+                    }
+                    .tint(.red)
+                    .buttonStyle(.bordered)
+                }
+            }
+        }
+        .padding(14)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+// MARK: - Topic Badge
+
+struct TopicBadge: View {
+    let topic: String
+
+    var body: some View {
+        Text(topic)
+            .font(.caption2.weight(.medium))
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(topicColor.opacity(0.15))
+            .foregroundStyle(topicColor)
+            .clipShape(Capsule())
+    }
+
+    private var topicColor: Color {
+        let palette: [Color] = [.blue, .purple, .orange, .green, .pink, .teal, .indigo, .mint, .cyan, .brown]
+        return palette[abs(topic.hashValue) % palette.count]
+    }
+}
+
+// MARK: - Supporting Views
+
+private struct CaptureRowView: View {
+    let capture: Capture
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: capture.inputType == .voice ? "mic.fill" : "text.bubble.fill")
+                .foregroundStyle(capture.inputType == .voice ? .blue : .secondary)
+                .frame(width: 24)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(capture.rawText)
+                    .lineLimit(2)
+                    .font(.body)
+                HStack {
+                    CaptureStatusLabel(capture: capture)
+                    Spacer()
+                    Text(capture.createdAt, style: .relative)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+        }
+        .padding(.vertical, 2)
+    }
+}
+
+private struct CaptureStatusLabel: View {
+    let capture: Capture
+    var body: some View {
+        switch capture.processingStatus {
+        case .processed:
+            let count = capture.createdCandidateIds.count
+            Label(count == 1 ? "1 candidate" : "\(count) candidates", systemImage: "sparkles")
+                .font(.caption).foregroundStyle(.green)
+        case .failed:
+            Label("Failed", systemImage: "exclamationmark.triangle.fill")
+                .font(.caption).foregroundStyle(.red)
+        case .pending:
+            Label("Processing…", systemImage: "clock")
+                .font(.caption).foregroundStyle(.orange)
         }
     }
 }
@@ -246,31 +342,23 @@ private struct VoiceRecordingView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
-                Circle()
-                    .fill(.red)
-                    .frame(width: 8, height: 8)
+                Circle().fill(.red).frame(width: 8, height: 8)
                 Text("Recording...")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.caption).foregroundStyle(.secondary)
                 if savedSegmentCount > 0 {
                     Spacer()
                     Label(
                         savedSegmentCount == 1 ? "1 segment saved" : "\(savedSegmentCount) segments saved",
                         systemImage: "checkmark.circle.fill"
                     )
-                    .font(.caption)
-                    .foregroundStyle(.green)
+                    .font(.caption).foregroundStyle(.green)
                 }
             }
-
             if transcript.isEmpty {
-                Text("Listening...")
-                    .foregroundStyle(.tertiary)
-                    .frame(minHeight: 80, alignment: .topLeading)
+                Text("Listening...").foregroundStyle(.tertiary).frame(minHeight: 80, alignment: .topLeading)
             } else {
                 ScrollView {
-                    Text(transcript)
-                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                    Text(transcript).frame(maxWidth: .infinity, alignment: .topLeading)
                 }
                 .frame(minHeight: 80)
             }
@@ -283,113 +371,107 @@ private struct CaptureDetailView: View {
     let capture: Capture
     @EnvironmentObject private var container: AppContainer
     @State private var candidates: [MemoryCandidate] = []
+    @State private var mermaidHeight: CGFloat = 300
     @State private var error: String?
 
     var body: some View {
-        List {
-            Section {
-                Text(capture.rawText)
-            } header: {
-                HStack {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Raw text
+                GroupBox {
+                    Text(capture.rawText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } label: {
                     Label(
                         capture.inputType == .voice ? "Voice" : "Text",
                         systemImage: capture.inputType == .voice ? "mic.fill" : "text.bubble.fill"
                     )
-                    Spacer()
-                    Text(capture.createdAt, format: .dateTime)
                 }
-            }
+                .padding(.horizontal)
 
-            if let error {
-                Section {
-                    Label(error, systemImage: "exclamationmark.triangle")
-                        .foregroundStyle(.red)
+                // Enriched markdown
+                if let md = capture.enrichedMarkdown {
+                    GroupBox {
+                        #if os(iOS)
+                        MermaidView(markdown: md, contentHeight: $mermaidHeight)
+                            .frame(height: mermaidHeight)
+                        #else
+                        Markdown(md).padding(4)
+                        #endif
+                    } label: {
+                        Label("Enriched View", systemImage: "sparkles")
+                    }
+                    .padding(.horizontal)
                 }
-            }
 
-            if candidates.isEmpty {
-                ContentUnavailableView(
-                    "No Candidates",
-                    systemImage: "sparkles",
-                    description: Text("No memory candidates were extracted from this capture.")
-                )
-            } else {
-                ForEach(candidates) { candidate in
-                    Section {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                TypeBadge(type: candidate.type)
-                                Spacer()
-                                Text("\(Int(candidate.confidence * 100))%")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Text(candidate.proposedText)
-                            Text(candidate.reason)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-
-                            if candidate.status == .pending {
-                                HStack(spacing: 12) {
-                                    Button {
-                                        Task { await approve(candidate) }
-                                    } label: {
-                                        Label("Approve", systemImage: "checkmark.circle.fill")
-                                            .font(.caption)
-                                    }
-                                    .tint(.green)
-
-                                    Button(role: .destructive) {
-                                        Task { await reject(candidate) }
-                                    } label: {
-                                        Label("Reject", systemImage: "xmark.circle.fill")
-                                            .font(.caption)
-                                    }
+                // Candidates
+                if candidates.isEmpty && capture.processingStatus == .processed {
+                    ContentUnavailableView("No Candidates", systemImage: "sparkles")
+                        .padding(.horizontal)
+                } else {
+                    ForEach(candidates) { candidate in
+                        GroupBox {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    TopicBadge(topic: candidate.topic)
+                                    Spacer()
+                                    Text("\(Int(candidate.confidence * 100))%")
+                                        .font(.caption).foregroundStyle(.secondary)
                                 }
-                            } else {
-                                Label(
-                                    candidate.status.rawValue.capitalized,
-                                    systemImage: statusIcon(candidate.status)
-                                )
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                Text(candidate.proposedText)
+                                Text(candidate.reason)
+                                    .font(.caption).foregroundStyle(.secondary)
+                                statusView(candidate)
                             }
                         }
-                        .padding(.vertical, 4)
+                        .padding(.horizontal)
                     }
                 }
             }
+            .padding(.vertical)
         }
         .navigationTitle("Capture Detail")
         .task { await loadCandidates() }
     }
 
+    @ViewBuilder
+    private func statusView(_ candidate: MemoryCandidate) -> some View {
+        switch candidate.status {
+        case .pending:
+            HStack(spacing: 12) {
+                Button { Task { await approve(candidate) } } label: {
+                    Label("Approve", systemImage: "checkmark.circle.fill").font(.caption)
+                }
+                .tint(.green)
+                Button(role: .destructive) { Task { await reject(candidate) } } label: {
+                    Label("Reject", systemImage: "xmark.circle.fill").font(.caption)
+                }
+            }
+        default:
+            Label(candidate.status.rawValue.capitalized, systemImage: statusIcon(candidate.status))
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
     private func loadCandidates() async {
         do {
             let all = try await container.memoryRepository.fetchAllCandidates()
-            candidates = all.filter { $0.sourceCaptureId == capture.id }
-                .sorted { $0.createdAt > $1.createdAt }
-        } catch {
-            self.error = error.localizedDescription
-        }
+            candidates = all.filter { $0.sourceCaptureId == capture.id }.sorted { $0.createdAt > $1.createdAt }
+        } catch { self.error = error.localizedDescription }
     }
 
     private func approve(_ candidate: MemoryCandidate) async {
         do {
             _ = try await container.approvalService.approve(candidate: candidate)
             await loadCandidates()
-        } catch {
-            self.error = error.localizedDescription
-        }
+        } catch { self.error = error.localizedDescription }
     }
 
     private func reject(_ candidate: MemoryCandidate) async {
         do {
             try await container.approvalService.reject(candidate: candidate)
             await loadCandidates()
-        } catch {
-            self.error = error.localizedDescription
-        }
+        } catch { self.error = error.localizedDescription }
     }
 
     private func statusIcon(_ status: CandidateStatus) -> String {
@@ -398,30 +480,6 @@ private struct CaptureDetailView: View {
         case .rejected: return "xmark.circle.fill"
         case .temporary: return "clock.fill"
         case .pending: return "circle"
-        }
-    }
-}
-
-struct TypeBadge: View {
-    let type: CandidateType
-    var body: some View {
-        Text(type.rawValue)
-            .font(.caption2)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(color.opacity(0.15))
-            .foregroundStyle(color)
-            .clipShape(Capsule())
-    }
-    private var color: Color {
-        switch type {
-        case .learning: return .blue
-        case .preference: return .purple
-        case .goal: return .orange
-        case .project: return .green
-        case .statusChange: return .yellow
-        case .clarificationNeeded: return .red
-        case .general: return .gray
         }
     }
 }

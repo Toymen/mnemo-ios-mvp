@@ -23,36 +23,35 @@ struct OllamaExtractionEngine: MemoryExtractionEngine {
         }
     }
 
-    func extractCandidates(from capture: Capture, context: MemoryContext) async throws -> [MemoryCandidate] {
+    func extract(from capture: Capture, context: MemoryContext) async throws -> ExtractionResult {
         guard await isAvailable else {
-            return try await fallback.extractCandidates(from: capture, context: context)
+            return try await fallback.extract(from: capture, context: context)
         }
         do {
-            return try await extractViaOllama(capture: capture, context: context)
+            return try await extractViaOllama(capture: capture)
         } catch {
-            return try await fallback.extractCandidates(from: capture, context: context)
+            return try await fallback.extract(from: capture, context: context)
         }
     }
 
-    private func extractViaOllama(capture: Capture, context: MemoryContext) async throws -> [MemoryCandidate] {
+    private func extractViaOllama(capture: Capture) async throws -> ExtractionResult {
         let systemPrompt = """
-        You are a memory extraction assistant. Given a user's capture text, extract structured memory candidates.
+        You are a memory extraction assistant. Extract structured memory candidates from the user's capture.
         Return ONLY valid JSON matching this schema:
         {
           "candidates": [
             {
-              "type": "preference|project|goal|learning|statusChange|clarificationNeeded|general",
+              "topic": "string",
               "proposedText": "string",
               "confidence": 0.0,
-              "reason": "string",
-              "suggestedProjectName": "string or null",
-              "clarificationQuestion": "string or null"
+              "reason": "string"
             }
           ]
         }
         Rules:
+        - topic: free-form label such as 'coding', 'health', 'career', 'relationships', 'finance', 'learning'
         - confidence must be between 0 and 1
-        - reason is required
+        - reason is required and non-empty
         - proposedText is required and non-empty
         - Do not invent facts; extract only what is stated
         """
@@ -85,18 +84,18 @@ struct OllamaExtractionEngine: MemoryExtractionEngine {
             throw ExtractionError.malformedResponse
         }
 
-        return try parseOllamaResponse(responseData, captureId: capture.id)
+        let candidates = try parseResponse(responseData, captureId: capture.id)
+        return ExtractionResult(candidates: candidates, enrichedMarkdown: nil)
     }
 
-    private func parseOllamaResponse(_ data: Data, captureId: UUID) throws -> [MemoryCandidate] {
+    private func parseResponse(_ data: Data, captureId: UUID) throws -> [MemoryCandidate] {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let rawCandidates = json["candidates"] as? [[String: Any]] else {
             throw ExtractionError.malformedResponse
         }
 
         return rawCandidates.compactMap { raw -> MemoryCandidate? in
-            guard let typeStr = raw["type"] as? String,
-                  let type_ = CandidateType(rawValue: typeStr),
+            guard let topic = raw["topic"] as? String,
                   let proposedText = raw["proposedText"] as? String,
                   !proposedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   let confidence = raw["confidence"] as? Double,
@@ -106,11 +105,10 @@ struct OllamaExtractionEngine: MemoryExtractionEngine {
             }
             return MemoryCandidate(
                 sourceCaptureId: captureId,
-                type: type_,
+                topic: topic,
                 proposedText: proposedText,
                 confidence: max(0, min(1, confidence)),
-                reason: reason,
-                clarificationQuestion: raw["clarificationQuestion"] as? String
+                reason: reason
             )
         }
     }

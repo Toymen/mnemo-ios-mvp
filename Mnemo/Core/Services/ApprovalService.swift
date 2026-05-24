@@ -44,7 +44,7 @@ final class ApprovalService {
         let memory = ApprovedMemory(
             sourceCandidateId: candidate.id,
             sourceCaptureId: candidate.sourceCaptureId,
-            type: candidate.type,
+            topic: candidate.topic,
             text: finalText,
             confidence: candidate.confidence,
             reason: candidate.reason,

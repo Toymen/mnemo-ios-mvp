@@ -9,9 +9,9 @@ struct CandidateDetailView: View {
 
     var body: some View {
         Form {
-            Section("Type") {
+            Section("Topic") {
                 HStack {
-                    TypeBadge(type: candidate.type)
+                    TopicBadge(topic: candidate.topic)
                     Spacer()
                     Text("\(Int(candidate.confidence * 100))% confidence")
                         .font(.caption)

@@ -12,7 +12,17 @@ struct MemoryContext: Sendable {
     }
 }
 
+struct ExtractionResult: Sendable {
+    let candidates: [MemoryCandidate]
+    let enrichedMarkdown: String?
+
+    init(candidates: [MemoryCandidate], enrichedMarkdown: String? = nil) {
+        self.candidates = candidates
+        self.enrichedMarkdown = enrichedMarkdown
+    }
+}
+
 protocol MemoryExtractionEngine: Sendable {
     var engineName: String { get }
-    func extractCandidates(from capture: Capture, context: MemoryContext) async throws -> [MemoryCandidate]
+    func extract(from capture: Capture, context: MemoryContext) async throws -> ExtractionResult
 }

@@ -48,12 +48,12 @@ final class DailyReflectionViewModel {
         do {
             try await captureRepository.save(capture)
             let context = MemoryContext()
-            let candidates = try await extractionEngine.extractCandidates(from: capture, context: context)
-            for c in candidates { try await memoryRepository.saveCandidate(c) }
+            let result = try await extractionEngine.extract(from: capture, context: context)
+            for c in result.candidates { try await memoryRepository.saveCandidate(c) }
 
-            r.createdCandidateIds = candidates.map { $0.id }
+            r.createdCandidateIds = result.candidates.map { $0.id }
             reflection = r
-            generatedCandidateCount = candidates.count
+            generatedCandidateCount = result.candidates.count
             didSubmit = true
         } catch {
             self.error = error.localizedDescription
